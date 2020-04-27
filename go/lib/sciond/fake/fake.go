@@ -86,7 +86,7 @@ func (p Path) Fingerprint() snet.PathFingerprint {
 	return snet.PathFingerprint(p.JSONFingerprint)
 }
 
-func (p Path) OverlayNextHop() *net.UDPAddr {
+func (p Path) UnderlayNextHop() *net.UDPAddr {
 	return (*net.UDPAddr)(p.JSONNextHop)
 }
 
@@ -97,7 +97,7 @@ func (p Path) Path() *spath.Path {
 // DummyPath creates a path that is reversible.
 func DummyPath() *spath.Path {
 	return &spath.Path{
-		Raw:    make(common.RawBytes, spath.InfoFieldLength+spath.HopFieldLength),
+		Raw:    make(common.RawBytes, spath.InfoFieldLength+2*spath.HopFieldLength),
 		HopOff: spath.InfoFieldLength,
 	}
 }

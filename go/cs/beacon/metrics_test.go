@@ -18,6 +18,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/scionproto/scion/go/cs/beacon"
 	"github.com/scionproto/scion/go/cs/beacon/beacondbsqlite"
 	"github.com/scionproto/scion/go/cs/beacon/beacondbtest"
@@ -33,8 +35,8 @@ type TestBackend struct {
 }
 
 func (b *TestBackend) Prepare(t *testing.T, _ context.Context) {
-	db, err := beacondbsqlite.New(":memory:", testIA)
-	xtest.FailOnErr(t, err)
+	db, err := beacondbsqlite.New("file::memory:", testIA)
+	require.NoError(t, err)
 	b.DB = beacon.DBWithMetrics("testdb", db)
 }
 

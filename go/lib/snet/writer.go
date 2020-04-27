@@ -25,7 +25,7 @@ import (
 	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/l4"
 	"github.com/scionproto/scion/go/lib/spath"
-	"github.com/scionproto/scion/go/lib/topology/overlay"
+	"github.com/scionproto/scion/go/lib/topology/underlay"
 )
 
 type scionConnWriter struct {
@@ -63,7 +63,12 @@ func (c *scionConnWriter) WriteTo(b []byte, raddr net.Addr) (int, error) {
 			a.Host.Port, a.Path
 		nextHop = a.NextHop
 		if nextHop == nil && c.base.scionNet.localIA.Equal(a.IA) {
-			nextHop = &net.UDPAddr{IP: a.Host.IP, Port: overlay.EndhostPort}
+			nextHop = &net.UDPAddr{
+				IP:   a.Host.IP,
+				Port: underlay.EndhostPort,
+				Zone: a.Host.Zone,
+			}
+
 		}
 	case *SVCAddr:
 		dst, port, path = SCIONAddress{IA: a.IA, Host: a.SVC}, 0, a.Path

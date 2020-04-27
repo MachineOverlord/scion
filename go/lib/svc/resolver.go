@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
@@ -34,7 +35,7 @@ import (
 // and calling code should not depend on them.
 const (
 	errNilPacket      common.ErrMsg = "packet is nil"
-	errNilOverlay     common.ErrMsg = "overlay is nil"
+	errNilUnderlay    common.ErrMsg = "underlay is nil"
 	errUnsupportedPld common.ErrMsg = "unsupported payload type"
 	errRegistration   common.ErrMsg = "unable to open conn"
 	errWrite          common.ErrMsg = "unable to write"
@@ -72,6 +73,7 @@ func (r *Resolver) LookupSVC(ctx context.Context, p snet.Path, svc addr.HostSVC)
 
 	conn, port, err := r.ConnFactory.Register(ctx, r.LocalIA, u, addr.SvcNone)
 	if err != nil {
+		ext.Error.Set(span, true)
 		return nil, common.NewBasicError(errRegistration, err)
 	}
 
@@ -92,7 +94,12 @@ func (r *Resolver) LookupSVC(ctx context.Context, p snet.Path, svc addr.HostSVC)
 			Payload: common.RawBytes(r.Payload),
 		},
 	}
-	return r.getRoundTripper().RoundTrip(ctx, conn, requestPacket, p.OverlayNextHop())
+	reply, err := r.getRoundTripper().RoundTrip(ctx, conn, requestPacket, p.UnderlayNextHop())
+	if err != nil {
+		ext.Error.Set(span, true)
+		return nil, err
+	}
+	return reply, nil
 }
 
 func (r *Resolver) getRoundTripper() RoundTripper {
@@ -103,11 +110,11 @@ func (r *Resolver) getRoundTripper() RoundTripper {
 }
 
 // RoundTripper does a single SVC resolution request/reply interaction over a
-// connection, using the specified request packet and overlay address.
+// connection, using the specified request packet and underlay address.
 type RoundTripper interface {
 	// RoundTrip performs the round trip interaction.
 	RoundTrip(ctx context.Context, c snet.PacketConn, request *snet.Packet,
-		ov *net.UDPAddr) (*Reply, error)
+		u *net.UDPAddr) (*Reply, error)
 }
 
 // DefaultRoundTripper returns a basic implementation of the RoundTripper
@@ -121,7 +128,7 @@ var _ RoundTripper = (*roundTripper)(nil)
 type roundTripper struct{}
 
 func (roundTripper) RoundTrip(ctx context.Context, c snet.PacketConn, pkt *snet.Packet,
-	ov *net.UDPAddr) (*Reply, error) {
+	u *net.UDPAddr) (*Reply, error) {
 
 	cancelF := ctxconn.CloseConnOnDone(ctx, c)
 	defer cancelF()
@@ -129,11 +136,11 @@ func (roundTripper) RoundTrip(ctx context.Context, c snet.PacketConn, pkt *snet.
 	if pkt == nil {
 		return nil, common.NewBasicError(errNilPacket, nil)
 	}
-	if ov == nil {
-		return nil, common.NewBasicError(errNilOverlay, nil)
+	if u == nil {
+		return nil, common.NewBasicError(errNilUnderlay, nil)
 	}
 
-	if err := c.WriteTo(pkt, ov); err != nil {
+	if err := c.WriteTo(pkt, u); err != nil {
 		return nil, common.NewBasicError(errWrite, err)
 	}
 
@@ -161,7 +168,7 @@ func (roundTripper) RoundTrip(ctx context.Context, c snet.PacketConn, pkt *snet.
 	}
 	reply.ReturnPath = &path{
 		spath:       replyPacket.Path,
-		overlay:     &replyOv,
+		underlay:    &replyOv,
 		destination: replyPacket.Source.IA,
 	}
 	return &reply, nil
@@ -169,7 +176,7 @@ func (roundTripper) RoundTrip(ctx context.Context, c snet.PacketConn, pkt *snet.
 
 type path struct {
 	spath       *spath.Path
-	overlay     *net.UDPAddr
+	underlay    *net.UDPAddr
 	destination addr.IA
 }
 
@@ -177,8 +184,8 @@ func (p *path) Fingerprint() snet.PathFingerprint {
 	return ""
 }
 
-func (p *path) OverlayNextHop() *net.UDPAddr {
-	return p.overlay
+func (p *path) UnderlayNextHop() *net.UDPAddr {
+	return p.underlay
 }
 
 func (p *path) Path() *spath.Path {
@@ -207,7 +214,7 @@ func (p *path) Copy() snet.Path {
 	}
 	return &path{
 		spath:       p.spath.Copy(),
-		overlay:     snet.CopyUDPAddr(p.overlay),
+		underlay:    snet.CopyUDPAddr(p.underlay),
 		destination: p.destination,
 	}
 }

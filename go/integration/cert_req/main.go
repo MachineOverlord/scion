@@ -21,6 +21,8 @@ import (
 	"net"
 	"os"
 
+	"github.com/opentracing/opentracing-go/ext"
+
 	"github.com/scionproto/scion/go/integration"
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
@@ -112,11 +114,13 @@ func (c client) attemptRequest(n int) bool {
 	var err error
 	if chain, err = c.requestCert(ctx); err != nil {
 		log.Error("Error requesting certificate chain", "err", err)
+		ext.Error.Set(span, true)
 		return false
 	}
 	// Send TRC request
 	if err = c.requestTRC(ctx, chain); err != nil {
 		log.Error("Error requesting TRC", "err", err)
+		ext.Error.Set(span, true)
 		return false
 	}
 	return true
@@ -231,5 +235,5 @@ func getRemote() error {
 func getSVCAddress() (*net.UDPAddr, error) {
 	ctx, cancelF := context.WithTimeout(context.Background(), integration.DefaultIOTimeout)
 	defer cancelF()
-	return sciond.TopoQuerier{Connector: integration.SDConn()}.OverlayAnycast(ctx, addr.SvcCS)
+	return sciond.TopoQuerier{Connector: integration.SDConn()}.UnderlayAnycast(ctx, addr.SvcCS)
 }
