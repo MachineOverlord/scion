@@ -76,3 +76,7 @@ tags
 
 # local buildkite run
 /artifacts.out
+
+# IntelliJ folder
+#########################
+.idea/
