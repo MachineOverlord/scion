@@ -162,8 +162,7 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 				hopEntry := asEntry.HopEntries[0]
 				HF,_ := hopEntry.HopField()
 				inIFID := HF.ConsIngress
-				var SI *seg.StaticInfoExtn
-				SI = asEntry.Exts.StaticInfo
+				SI := asEntry.Exts.StaticInfo
 				// If we're in the middle of a segment, simply take data from staticinfoextn in
 				// the corresponding ASEntry and put it into res
 				if !(asEntryIdx==(len(asEntries)-1)){
