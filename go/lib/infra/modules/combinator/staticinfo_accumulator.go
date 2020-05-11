@@ -9,7 +9,6 @@ import (
 	"github.com/scionproto/scion/go/proto"
 )
 
-
 type ASnote struct {
 	Note string
 }
@@ -21,7 +20,7 @@ type ASGeo struct {
 type GeoLoc struct {
 	Latitude float32
 	Longitude float32
-	CivAddr string
+	Address string
 }
 
 type ASDelay struct {
@@ -44,10 +43,23 @@ type ASBandwidth struct {
 	InterBW uint32
 }
 
+type DenseASLinkType struct {
+	InterLinkType uint16
+	PeerLinkType uint16
+	IA addr.IA
+}
+
+type DenseGeo struct {
+	IA addr.IA
+	RouterLocations []GeoLoc
+}
+
+type DenseNote struct {
+	Note string
+	IA addr.IA
+}
+
 type Pathmetadata struct {
-	UpASes []addr.IA
-	CoreASes []addr.IA
-	DownASes []addr.IA
 	SingleDelays map[addr.IA]ASDelay
 	Singlebw map[addr.IA]ASBandwidth
 	SingleHops map[addr.IA]ASHops
@@ -57,18 +69,18 @@ type Pathmetadata struct {
 	Notes map[addr.IA]ASnote
 }
 
-// Condensed form of metadata retaining only most important values.
+// Densemetadata is the condensed form of metadata retaining only the most important values.
 type Densemetadata struct {
-	ASes []addr.IA
 	TotalDelay uint16
 	TotalHops uint8
 	MinOfMaxBWs uint32
-	LinkTypes map[addr.IA]ASLink
-	Locations map[addr.IA]ASGeo
-	Notes map[addr.IA]string
+	LinkTypes []DenseASLinkType
+	Locations []DenseGeo
+	Notes []DenseNote
 }
 
-
+// Condensemetadata takes pathmetadata and extracts/condenses
+// the most important values to be transmitted to SCIOND
 func (data *Pathmetadata) Condensemetadata() *Densemetadata{
 	ret := &Densemetadata{
 		TotalDelay: 0,
@@ -77,8 +89,7 @@ func (data *Pathmetadata) Condensemetadata() *Densemetadata{
 	}
 
 	for _, val := range data.Singlebw{
-		var asmaxbw uint32
-		asmaxbw = math.MaxUint32
+		var asmaxbw uint32 = math.MaxUint32
 		if(val.IntraBW>0){
 			asmaxbw = uint32(math.Min(float64(val.IntraBW),float64(asmaxbw)))
 		}
@@ -103,24 +114,25 @@ func (data *Pathmetadata) Condensemetadata() *Densemetadata{
 	}
 
 	for IA, note := range data.Notes{
-		ret.Notes[IA] = note.Note
+		ret.Notes = append(ret.Notes, DenseNote{
+			Note: note.Note,
+			IA:   IA,
+		})
 	}
 
 	for IA, loc := range data.Geo{
-		ret.Locations[IA] = loc
-	}
-	for IA, link := range data.Links{
-		ret.LinkTypes[IA] =  link
+		ret.Locations = append(ret.Locations, DenseGeo{
+			IA:        IA,
+			RouterLocations: loc.locations,
+		})
 	}
 
-	for i := 0; i<len(data.UpASes); i++  {
-		ret.ASes = append(ret.ASes, data.UpASes[i])
-	}
-	for i := len(data.CoreASes)-1; i>=0; i--  {
-		ret.ASes = append(ret.ASes, data.CoreASes[i])
-	}
-	for i:=len(data.DownASes)-1;i>=0;i--  {
-		ret.ASes = append(ret.ASes, data.DownASes[i])
+	for IA, link := range data.Links{
+		ret.LinkTypes = append(ret.LinkTypes, DenseASLinkType{
+			InterLinkType: link.InterLinkType,
+			PeerLinkType:  link.PeerLinkType,
+			IA:            IA,
+		})
 	}
 
 	return ret
@@ -140,20 +152,11 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 		While not shortcut, simply assemble metadata normally by using intoout metrics in the ASEntry's staticinfoextn.
 		If index == shortcut, check if "normal" shortcut or peering shortcut (if peer != 0) and treat accordingly.
 		Also make sure to treat the first entry in the up and down segs (i.e. first and last ASes on the path)
-		specially, since there is no metadata to collect on those ASes.
+		specially, since (apart from geolocation data) there is no metadata to collect on those ASes.
 	*/
 	for _, solEdge := range solution.edges{
 		asEntries := solEdge.segment.ASEntries
 		for asEntryIdx := len(asEntries) - 1; asEntryIdx >= solEdge.edge.Shortcut; asEntryIdx-- {
-			if (solEdge.segment.Type == iscoreseg){
-				res.CoreASes = append(res.CoreASes, asEntries[asEntryIdx].IA())
-			}
-			if solEdge.segment.IsDownSeg(){
-				res.DownASes = append(res.DownASes, asEntries[asEntryIdx].IA())
-			}
-			if (!(solEdge.segment.Type == iscoreseg)) && (!(solEdge.segment.IsDownSeg())){
-				res.UpASes = append(res.UpASes, asEntries[asEntryIdx].IA())
-			}
 			if (asEntryIdx>solEdge.edge.Shortcut) {
 				asEntry := asEntries[asEntryIdx]
 				hopEntry := asEntry.HopEntries[0]
@@ -209,8 +212,7 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 			} else {
 				asEntry := asEntries[asEntryIdx]
 				hopEntry := asEntry.HopEntries[0]
-				var SI *seg.StaticInfoExtn
-				SI = asEntry.Exts.StaticInfo
+				SI := asEntry.Exts.StaticInfo
 				if (solEdge.edge.Peer != 0) {
 					peerEntry := asEntry.HopEntries[solEdge.edge.Peer]
 					PE, _ := peerEntry.HopField()
@@ -255,7 +257,7 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 						locations: gathergeo(SI),
 					}
 					res.Notes[IA] = ASnote{
-						Note:SI.Note,
+						Note: SI.Note,
 					}
 					PeerOverifID = peerEntry.RemoteInIF
 					continue
@@ -263,12 +265,11 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 					// If we're in the AS where we cross over from an up segment
 					// (i.e. res.Upover is set), fill pathmetadata using UpOverentry
 					if UpOver {
-						var oldSI *seg.StaticInfoExtn
-						oldSI = UpOverEntry.Exts.StaticInfo
+						oldSI := UpOverEntry.Exts.StaticInfo
 						IA := asEntry.IA()
 						HF,_ := hopEntry.HopField()
 						egIFID := HF.ConsEgress
-						// we abuse Peerdelay and peerlink here to store an additional value for the AS
+						// We abuse Peerdelay and peerlink here to store an additional value for the AS
 						// in which the segment crossover happens
 						res.SingleDelays[IA] = ASDelay{
 							Intradelay: gatherxoverlatency(oldSI, egIFID),
@@ -302,7 +303,6 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 						res.SingleDelays[IA] = ASDelay{
 							Intradelay: gatherxoverlatency(SI, DownOverifID),
 							Interdelay: SI.Latency.Egresslatency,
-							Peerdelay:  0,
 						}
 						res.Links[IA] = ASLink{
 							InterLinkType: SI.Linktype.EgressLinkType,
@@ -322,7 +322,7 @@ func (solution *PathSolution) Assemblepcbmetadata() *Pathmetadata{
 						}
 						DownOver = false
 					}
-					//if we're in the last entry of the up segment, do nothign except set the UpOver flag
+					// If we're in the last inspected entry of the up segment, do nothing except set the UpOver flag
 					if !(solEdge.segment.Type == iscoreseg){
 						UpOver = true
 						UpOverEntry = asEntry
@@ -390,7 +390,7 @@ func gathergeo(SI *seg.StaticInfoExtn) ([]GeoLoc){
 		loc = append(loc, GeoLoc{
 			Latitude:  geocluster.GPSData.Latitude,
 			Longitude: geocluster.GPSData.Longitude,
-			CivAddr:   geocluster.GPSData.Address,
+			Address:   geocluster.GPSData.Address,
 		})
 	}
 	return loc
