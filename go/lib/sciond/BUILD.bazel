@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "apitypes.go",
         "sciond.go",
+        "staticinfotypes.go",
         "types.go",
     ],
     importpath = "github.com/scionproto/scion/go/lib/sciond",
@@ -14,7 +15,6 @@ go_library(
         "//go/lib/common:go_default_library",
         "//go/lib/ctrl/path_mgmt:go_default_library",
         "//go/lib/hostinfo:go_default_library",
-        "//go/lib/infra/modules/combinator:go_default_library",
         "//go/lib/log:go_default_library",
         "//go/lib/sciond/internal/metrics:go_default_library",
         "//go/lib/serrors:go_default_library",
