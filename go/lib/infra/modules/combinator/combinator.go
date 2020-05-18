@@ -71,7 +71,7 @@ type Path struct {
 	Weight     int
 	Mtu        uint16
 	Interfaces []sciond.PathInterface
-	StaticInfo *PathMetadata
+	StaticInfo *sciond.PathMetadata
 }
 
 func (p *Path) writeTestString(w io.Writer) {
