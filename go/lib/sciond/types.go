@@ -17,7 +17,6 @@ package sciond
 
 import (
 	"fmt"
-	"github.com/scionproto/scion/go/lib/infra/modules/combinator"
 	"strings"
 	"time"
 
@@ -168,7 +167,7 @@ func (r *PathReply) String() string {
 type PathReplyEntry struct {
 	Path     *FwdPathMeta
 	HostInfo hostinfo.Host
-	StaticInfo *combinator.PathMetadata
+	StaticInfo PathMetadata
 }
 
 func (e *PathReplyEntry) Copy() *PathReplyEntry {

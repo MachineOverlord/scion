@@ -19,7 +19,6 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
-	"github.com/scionproto/scion/go/lib/infra/modules/combinator"
 	"net"
 	"strings"
 	"time"
@@ -105,7 +104,7 @@ type Path struct {
 	mtu        uint16
 	expiry     time.Time
 	dst        addr.IA
-	staticInfo *combinator.PathMetadata
+	staticInfo PathMetadata
 }
 
 func pathReplyToPaths(pathReply *PathReply, dst addr.IA) ([]snet.Path, error) {
@@ -221,7 +220,7 @@ func (p Path) String() string {
 		strings.Join(hops, ">"), p.mtu, p.underlay, p.staticInfo)
 }
 
-func (p Path) GetStaticInfo() *combinator.PathMetadata {
+func (p Path) GetStaticInfo() PathMetadata {
 	return p.staticInfo
 }
 

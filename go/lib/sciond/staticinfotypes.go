@@ -2,7 +2,7 @@ package sciond
 
 import (
 	"fmt"
-	
+
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/proto"
 )
