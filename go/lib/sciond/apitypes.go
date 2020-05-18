@@ -217,8 +217,8 @@ func (p Path) Copy() snet.Path {
 
 func (p Path) String() string {
 	hops := p.fmtInterfaces()
-	return fmt.Sprintf("Hops: [%s] MTU: %d, NextHop: %s",
-		strings.Join(hops, ">"), p.mtu, p.underlay)
+	return fmt.Sprintf("Hops: [%s] MTU: %d, NextHop: %s, StaticInfo: %v",
+		strings.Join(hops, ">"), p.mtu, p.underlay, p.staticInfo)
 }
 
 func (p Path) GetStaticInfo() *combinator.PathMetadata {
