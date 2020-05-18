@@ -19,6 +19,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"github.com/scionproto/scion/go/lib/infra/modules/combinator"
 	"net"
 	"strings"
 	"time"
@@ -104,6 +105,7 @@ type Path struct {
 	mtu        uint16
 	expiry     time.Time
 	dst        addr.IA
+	staticInfo *combinator.PathMetadata
 }
 
 func pathReplyToPaths(pathReply *PathReply, dst addr.IA) ([]snet.Path, error) {
@@ -138,6 +140,7 @@ func pathReplyEntryToPath(pe PathReplyEntry, dst addr.IA) (Path, error) {
 		spath:      sp,
 		mtu:        pe.Path.Mtu,
 		expiry:     pe.Path.Expiry(),
+		staticInfo: pe.StaticInfo,
 	}
 	for _, intf := range pe.Path.Interfaces {
 		p.interfaces = append(p.interfaces, pathInterface{ia: intf.IA(), id: intf.ID()})
@@ -208,6 +211,7 @@ func (p Path) Copy() snet.Path {
 		spath:      p.Path(),            // creates copy
 		mtu:        p.mtu,
 		expiry:     p.expiry,
+		staticInfo: p.staticInfo,
 	}
 }
 
@@ -215,6 +219,10 @@ func (p Path) String() string {
 	hops := p.fmtInterfaces()
 	return fmt.Sprintf("Hops: [%s] MTU: %d, NextHop: %s",
 		strings.Join(hops, ">"), p.mtu, p.underlay)
+}
+
+func (p Path) GetStaticInfo() *combinator.PathMetadata {
+	return p.staticInfo
 }
 
 func (p Path) fmtInterfaces() []string {
