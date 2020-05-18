@@ -1,12 +1,12 @@
 package combinator
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
+	"github.com/scionproto/scion/go/lib/sciond"
 	"github.com/scionproto/scion/go/proto"
 )
 
@@ -15,22 +15,7 @@ type ASnote struct {
 }
 
 type ASGeo struct {
-	locations []GeoLoc
-}
-
-type GeoLoc struct {
-	Latitude  float32 `capnp:"latitude"`
-	Longitude float32 `capnp:"longitude"`
-	Address   string  `capnp:"address"`
-}
-
-func (s *GeoLoc) ProtoId() proto.ProtoIdType {
-	return proto.PathMetadata_Geo_GPSData_TypeID
-}
-
-func (s *GeoLoc) String() string {
-	return fmt.Sprintf("Latitude: %f\nLongitude: %f\nAddress: %s\n",
-		s.Latitude, s.Longitude, s.Address)
+	locations []sciond.GeoLoc
 }
 
 type ASLatency struct {
@@ -53,49 +38,6 @@ type ASBandwidth struct {
 	InterBW uint32
 }
 
-type DenseASLinkType struct {
-	InterLinkType uint16     `capnp:"interLinkType"`
-	PeerLinkType  uint16     `capnp:"peerLinkType"`
-	RawIA         addr.IAInt `capnp:"isdas"`
-}
-
-func (s *DenseASLinkType) ProtoId() proto.ProtoIdType {
-	return proto.PathMetadata_InterfaceLinkType_TypeID
-}
-
-func (s *DenseASLinkType) String() string {
-	return fmt.Sprintf("InterLinkType: %d\nPeerLinkType: %d\nISD: %d\nAS: %d\n",
-		s.InterLinkType, s.PeerLinkType, s.RawIA.IA().I, s.RawIA.IA().A)
-}
-
-type DenseGeo struct {
-	RouterLocations []GeoLoc   `capnp:"routerLocations"`
-	RawIA           addr.IAInt `capnp:"isdas"`
-}
-
-func (s *DenseGeo) ProtoId() proto.ProtoIdType {
-	return proto.PathMetadata_Geo_TypeID
-}
-
-func (s *DenseGeo) String() string {
-	return fmt.Sprintf("RouterLocations: %v\nISD: %d\nAS: %d\n",
-		s.RouterLocations, s.RawIA.IA().I, s.RawIA.IA().A)
-}
-
-type DenseNote struct {
-	Note  string     `capnp:"note"`
-	RawIA addr.IAInt `capnp:"isdas"`
-}
-
-func (s *DenseNote) ProtoId() proto.ProtoIdType {
-	return proto.PathMetadata_Note_TypeID
-}
-
-func (s *DenseNote) String() string {
-	return fmt.Sprintf("Text: %s\nISD: %d\nAS: %d\n",
-		s.Note, s.RawIA.IA().I, s.RawIA.IA().A)
-}
-
 type RawPathMetadata struct {
 	ASLatencies  map[addr.IA]ASLatency
 	ASBandwidths map[addr.IA]ASBandwidth
@@ -105,31 +47,11 @@ type RawPathMetadata struct {
 	Notes        map[addr.IA]ASnote
 }
 
-// PathMetadata is the condensed form of metadata retaining only the most important values.
-type PathMetadata struct {
-	TotalLatency uint16            `capnp:"totalLatency"`
-	TotalHops    uint8             `capnp:"totalHops"`
-	MinOfMaxBWs  uint32            `capnp:"bandwidthBottleneck"`
-	LinkTypes    []DenseASLinkType `capnp:"linkTypes"`
-	Locations    []DenseGeo        `capnp:"asLocations"`
-	Notes        []DenseNote       `capnp:"notes"`
-}
-
-func (s *PathMetadata) ProtoId() proto.ProtoIdType {
-	return proto.PathMetadata_TypeID
-}
-
-func (s *PathMetadata) String() string {
-	return fmt.Sprintf("TotalLatency: %v\nTotalHops: %v\n"+
-		"BandwidthBottleneck: %v\nLinkTypes: %v\nASLocations: %v\nNotes: %v\n",
-		s.TotalLatency, s.TotalHops, s.MinOfMaxBWs, s.LinkTypes, s.Locations,
-		s.Notes)
-}
 
 // Condensemetadata takes RawPathMetadata and extracts/condenses
 // the most important values to be transmitted to SCIOND
-func (data *RawPathMetadata) Condensemetadata() *PathMetadata {
-	ret := &PathMetadata{
+func (data *RawPathMetadata) Condensemetadata() *sciond.PathMetadata {
+	ret := &sciond.PathMetadata{
 		TotalLatency: 0,
 		TotalHops:    0,
 		MinOfMaxBWs:  math.MaxUint32,
@@ -161,21 +83,21 @@ func (data *RawPathMetadata) Condensemetadata() *PathMetadata {
 	}
 
 	for IA, note := range data.Notes {
-		ret.Notes = append(ret.Notes, DenseNote{
+		ret.Notes = append(ret.Notes, sciond.DenseNote{
 			Note:  note.Note,
 			RawIA: IA.IAInt(),
 		})
 	}
 
 	for IA, loc := range data.Geo {
-		ret.Locations = append(ret.Locations, DenseGeo{
+		ret.Locations = append(ret.Locations, sciond.DenseGeo{
 			RawIA:           IA.IAInt(),
 			RouterLocations: loc.locations,
 		})
 	}
 
 	for IA, link := range data.Links {
-		ret.LinkTypes = append(ret.LinkTypes, DenseASLinkType{
+		ret.LinkTypes = append(ret.LinkTypes, sciond.DenseASLinkType{
 			InterLinkType: link.InterLinkType,
 			PeerLinkType:  link.PeerLinkType,
 			RawIA:         IA.IAInt(),
@@ -496,9 +418,9 @@ func (ASes *ASEntryList) CombineSegments() *RawPathMetadata {
 }
 
 func getGeo(asEntry *seg.ASEntry) ASGeo {
-	var locations []GeoLoc
+	var locations []sciond.GeoLoc
 	for _, loc := range asEntry.Exts.StaticInfo.Geo.Locations {
-		locations = append(locations, GeoLoc{
+		locations = append(locations, sciond.GeoLoc{
 			Latitude:  loc.GPSData.Latitude,
 			Longitude: loc.GPSData.Longitude,
 			Address:   loc.GPSData.Address,
