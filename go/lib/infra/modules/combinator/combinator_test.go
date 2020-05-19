@@ -29,6 +29,7 @@ import (
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
+	"github.com/scionproto/scion/go/lib/sciond"
 	"github.com/scionproto/scion/go/lib/xtest"
 	"github.com/scionproto/scion/go/lib/xtest/graph"
 )
@@ -570,9 +571,9 @@ func TestCombineSegments(t *testing.T) {
 		expectedLatency   uint16
 		expectedBW        uint32
 		expectedHops      uint8
-		expectedLinktypes []DenseASLinkType
-		expectedGeo       []DenseGeo
-		expectedNotes     []DenseNote
+		expectedLinktypes []sciond.DenseASLinkType
+		expectedGeo       []sciond.DenseGeo
+		expectedNotes     []sciond.DenseNote
 	}{
 		"#6 simple long up-core-down": {
 			FileName: "06_compute_path.txt",
@@ -605,9 +606,9 @@ func TestCombineSegments(t *testing.T) {
 				uint8(graph.If_110_X_130_A) +
 				uint8(graph.If_210_X_110_X) +
 				uint8(graph.If_211_A_212_X),
-			expectedGeo: []DenseGeo{
+			expectedGeo: []sciond.DenseGeo{
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:132").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:132").IAInt()),
 						Address:   "Züri",
@@ -615,7 +616,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:132").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:131").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:131").IAInt()),
 						Address:   "Züri",
@@ -623,7 +624,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:131").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:130").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:130").IAInt()),
 						Address:   "Züri",
@@ -631,7 +632,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:130").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:110").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:110").IAInt()),
 						Address:   "Züri",
@@ -639,7 +640,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:110").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:210").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:210").IAInt()),
 						Address:   "Züri",
@@ -647,7 +648,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:210").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:211").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:211").IAInt()),
 						Address:   "Züri",
@@ -655,7 +656,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:211").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:212").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:212").IAInt()),
 						Address:   "Züri",
@@ -663,7 +664,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:212").IAInt(),
 				},
 			},
-			expectedLinktypes: []DenseASLinkType{
+			expectedLinktypes: []sciond.DenseASLinkType{
 				{
 					InterLinkType: uint16(graph.If_131_X_132_X) % 3,
 					RawIA:         xtest.MustParseIA("1-ff00:0:131").IAInt(),
@@ -686,7 +687,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA:         xtest.MustParseIA("2-ff00:0:211").IAInt(),
 				},
 			},
-			expectedNotes: []DenseNote{
+			expectedNotes: []sciond.DenseNote{
 				{
 					Note:  "asdf",
 					RawIA: xtest.MustParseIA("1-ff00:0:131").IAInt(),
@@ -719,9 +720,9 @@ func TestCombineSegments(t *testing.T) {
 			expectedLatency: uint16(graph.If_130_A_131_X),
 			expectedBW:      calcBWmin([]common.IFIDType{graph.If_130_A_131_X}),
 			expectedHops:    0,
-			expectedGeo: []DenseGeo{
+			expectedGeo: []sciond.DenseGeo{
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:131").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:131").IAInt()),
 						Address:   "Züri",
@@ -729,7 +730,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:131").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:130").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:130").IAInt()),
 						Address:   "Züri",
@@ -737,13 +738,13 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:130").IAInt(),
 				},
 			},
-			expectedLinktypes: []DenseASLinkType{
+			expectedLinktypes: []sciond.DenseASLinkType{
 				{
 					InterLinkType: uint16(graph.If_130_A_131_X) % 3,
 					RawIA:         xtest.MustParseIA("1-ff00:0:130").IAInt(),
 				},
 			},
-			expectedNotes: []DenseNote{
+			expectedNotes: []sciond.DenseNote{
 				{
 					Note:  "asdf",
 					RawIA: xtest.MustParseIA("1-ff00:0:130").IAInt(),
@@ -760,9 +761,9 @@ func TestCombineSegments(t *testing.T) {
 			expectedLatency: uint16(graph.If_130_B_111_A),
 			expectedBW:      calcBWmin([]common.IFIDType{graph.If_130_B_111_A}),
 			expectedHops:    0,
-			expectedGeo: []DenseGeo{
+			expectedGeo: []sciond.DenseGeo{
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:130").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:130").IAInt()),
 						Address:   "Züri",
@@ -770,7 +771,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:130").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:111").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:111").IAInt()),
 						Address:   "Züri",
@@ -778,13 +779,13 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:111").IAInt(),
 				},
 			},
-			expectedLinktypes: []DenseASLinkType{
+			expectedLinktypes: []sciond.DenseASLinkType{
 				{
 					InterLinkType: uint16(graph.If_130_B_111_A) % 3,
 					RawIA:         xtest.MustParseIA("1-ff00:0:130").IAInt(),
 				},
 			},
-			expectedNotes: []DenseNote{
+			expectedNotes: []sciond.DenseNote{
 				{
 					Note:  "asdf",
 					RawIA: xtest.MustParseIA("1-ff00:0:130").IAInt(),
@@ -807,9 +808,9 @@ func TestCombineSegments(t *testing.T) {
 			expectedBW: calcBWmin([]common.IFIDType{graph.If_131_X_132_X,
 				graph.If_132_X_133_X}),
 			expectedHops: uint8(graph.If_132_X_133_X),
-			expectedGeo: []DenseGeo{
+			expectedGeo: []sciond.DenseGeo{
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:133").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:133").IAInt()),
 						Address:   "Züri",
@@ -817,7 +818,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:133").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:132").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:132").IAInt()),
 						Address:   "Züri",
@@ -825,7 +826,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:132").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("1-ff00:0:131").IAInt()),
 						Longitude: float32(xtest.MustParseIA("1-ff00:0:131").IAInt()),
 						Address:   "Züri",
@@ -833,7 +834,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("1-ff00:0:131").IAInt(),
 				},
 			},
-			expectedLinktypes: []DenseASLinkType{
+			expectedLinktypes: []sciond.DenseASLinkType{
 				{
 					InterLinkType: uint16(graph.If_132_X_133_X) % 3,
 					RawIA:         xtest.MustParseIA("1-ff00:0:132").IAInt(),
@@ -843,7 +844,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA:         xtest.MustParseIA("1-ff00:0:131").IAInt(),
 				},
 			},
-			expectedNotes: []DenseNote{
+			expectedNotes: []sciond.DenseNote{
 				{
 					Note:  "asdf",
 					RawIA: xtest.MustParseIA("1-ff00:0:131").IAInt(),
@@ -871,9 +872,9 @@ func TestCombineSegments(t *testing.T) {
 			expectedBW: calcBWmin([]common.IFIDType{graph.If_211_A1_212_X,
 				graph.If_211_A_222_X}),
 			expectedHops: uint8(graph.If_211_A1_212_X),
-			expectedGeo: []DenseGeo{
+			expectedGeo: []sciond.DenseGeo{
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:212").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:212").IAInt()),
 						Address:   "Züri",
@@ -881,7 +882,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:212").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:211").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:211").IAInt()),
 						Address:   "Züri",
@@ -889,7 +890,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:211").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:222").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:222").IAInt()),
 						Address:   "Züri",
@@ -897,14 +898,14 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:222").IAInt(),
 				},
 			},
-			expectedLinktypes: []DenseASLinkType{
+			expectedLinktypes: []sciond.DenseASLinkType{
 				{
 					InterLinkType: uint16(graph.If_211_A_222_X) % 3,
 					PeerLinkType:  uint16(graph.If_211_A1_212_X) % 3,
 					RawIA:         xtest.MustParseIA("2-ff00:0:211").IAInt(),
 				},
 			},
-			expectedNotes: []DenseNote{
+			expectedNotes: []sciond.DenseNote{
 				{
 					Note:  "asdf",
 					RawIA: xtest.MustParseIA("2-ff00:0:211").IAInt(),
@@ -932,9 +933,9 @@ func TestCombineSegments(t *testing.T) {
 			expectedBW: calcBWmin([]common.IFIDType{graph.If_211_A1_212_X, graph.If_211_A_221_X,
 				graph.If_221_X_211_A, graph.If_221_X_222_X}),
 			expectedHops: uint8(graph.If_211_A_221_X) + uint8(graph.If_221_X_211_A),
-			expectedGeo: []DenseGeo{
+			expectedGeo: []sciond.DenseGeo{
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:212").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:212").IAInt()),
 						Address:   "Züri",
@@ -942,7 +943,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:212").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:211").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:211").IAInt()),
 						Address:   "Züri",
@@ -950,7 +951,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:211").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:221").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:221").IAInt()),
 						Address:   "Züri",
@@ -958,7 +959,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:221").IAInt(),
 				},
 				{
-					RouterLocations: []GeoLoc{{
+					RouterLocations: []sciond.GeoLoc{{
 						Latitude:  float32(xtest.MustParseIA("2-ff00:0:222").IAInt()),
 						Longitude: float32(xtest.MustParseIA("2-ff00:0:222").IAInt()),
 						Address:   "Züri",
@@ -966,7 +967,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA: xtest.MustParseIA("2-ff00:0:222").IAInt(),
 				},
 			},
-			expectedLinktypes: []DenseASLinkType{
+			expectedLinktypes: []sciond.DenseASLinkType{
 				{
 					InterLinkType: uint16(graph.If_211_A1_212_X) % 3,
 					RawIA:         xtest.MustParseIA("2-ff00:0:211").IAInt(),
@@ -977,7 +978,7 @@ func TestCombineSegments(t *testing.T) {
 					RawIA:         xtest.MustParseIA("2-ff00:0:221").IAInt(),
 				},
 			},
-			expectedNotes: []DenseNote{
+			expectedNotes: []sciond.DenseNote{
 				{
 					Note:  "asdf",
 					RawIA: xtest.MustParseIA("2-ff00:0:211").IAInt(),
