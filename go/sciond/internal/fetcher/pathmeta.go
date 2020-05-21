@@ -7,6 +7,22 @@ import (
 	"github.com/scionproto/scion/go/lib/sciond"
 )
 
+func findbwMin(asbw combinator.ASBandwidth) uint32 {
+	var min uint32 = math.MaxUint32
+	if (asbw.IntraBW > 0){
+		min = asbw.IntraBW
+		if (asbw.InterBW > 0) && (asbw.InterBW < asbw.IntraBW){
+			min = asbw.InterBW
+		}
+	} else if (asbw.InterBW > 0){
+		min = asbw.InterBW
+	}
+	if (min < math.MaxUint32){
+		return min
+	}
+	return 0
+}
+
 // Condensemetadata takes RawPathMetadata and extracts/condenses
 // the most important values to be transmitted to SCIOND
 func Condensemetadata(data *combinator.PathMetadata) *sciond.PathMetadata {
@@ -17,15 +33,9 @@ func Condensemetadata(data *combinator.PathMetadata) *sciond.PathMetadata {
 	}
 
 	for _, val := range data.ASBandwidths {
-		var asmaxbw uint32 = math.MaxUint32
-		if val.IntraBW > 0 {
-			asmaxbw = uint32(math.Min(float64(val.IntraBW), float64(asmaxbw)))
-		}
-		if val.InterBW > 0 {
-			asmaxbw = uint32(math.Min(float64(val.InterBW), float64(asmaxbw)))
-		}
-		if asmaxbw < (math.MaxUint32) {
-			ret.MinOfMaxBWs = uint32(math.Min(float64(ret.MinOfMaxBWs), float64(asmaxbw)))
+		asminbw := findbwMin(val)
+		if (asminbw > 0) && (asminbw < ret.MinOfMaxBWs){
+			ret.MinOfMaxBWs = asminbw
 		}
 	}
 

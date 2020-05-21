@@ -112,14 +112,14 @@ func (cfgdata *StaticInfoCfg) gatherBW(peers map[common.IFIDType]struct{}, egifI
 // value that can be automatically parsed into a capnp enum.
 func transformLinkType(linktype string) uint16 {
 	switch linktype {
-	case "direct":
+	case "opennet":
 		return 0
 	case "multihop":
 		return 1
-	case "opennet":
+	case "direct":
 		return 2
 	default:
-		return 2
+		return 0
 	}
 }
 
