@@ -73,14 +73,10 @@ func (cfgdata *StaticInfoCfg) gatherLatency(peers map[common.IFIDType]struct{},
 			})
 			continue
 		}
-		// If we're looking at a NON-peering interface, only include the data
-		// if subintfid>egifID so as to not store redundant information
-		if subintfid > egifID {
-			l.Childlatencies = append(l.Childlatencies, seg.ChildLatency{
-				Intradelay: intfdelay,
-				IfID:       subintfid,
-			})
-		}
+		l.Childlatencies = append(l.Childlatencies, seg.ChildLatency{
+			Intradelay: intfdelay,
+			IfID:       subintfid,
+		})
 	}
 	return l
 }
@@ -104,14 +100,10 @@ func (cfgdata *StaticInfoCfg) gatherBW(peers map[common.IFIDType]struct{}, egifI
 			})
 			continue
 		}
-		// If we're looking at a NON-peering interface, only include the
-		// data if subintfid>egifID so as to not store redundant information
-		if subintfid > egifID {
-			l.Bandwidths = append(l.Bandwidths, seg.InterfaceBandwidth{
-				BW:   intfbw,
-				IfID: subintfid,
-			})
-		}
+		l.Bandwidths = append(l.Bandwidths, seg.InterfaceBandwidth{
+			BW:   intfbw,
+			IfID: subintfid,
+		})
 	}
 	return l
 }
@@ -161,14 +153,10 @@ func (cfgdata *StaticInfoCfg) gatherHops(peers map[common.IFIDType]struct{},
 		InToOutHops: cfgdata.Hops[egifID].Intra[inifID],
 	}
 	for intfid, intfHops := range cfgdata.Hops[egifID].Intra {
-		// If we're looking at a peering interface or intfid>egifID, include
-		// the data, otherwise drop it so as to not store redundant information
-		if _, peer := peers[intfid]; peer || (intfid > egifID) {
-			l.InterfaceHops = append(l.InterfaceHops, seg.InterfaceHops{
-				Hops: intfHops,
-				IfID: intfid,
-			})
-		}
+		l.InterfaceHops = append(l.InterfaceHops, seg.InterfaceHops{
+			Hops: intfHops,
+			IfID: intfid,
+		})
 	}
 	return l
 }
