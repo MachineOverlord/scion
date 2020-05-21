@@ -56,7 +56,7 @@ type StaticInfoCfg struct {
 
 // gatherLatency extracts latency values from a StaticInfoCfg struct and
 // inserts them into the LatencyInfo portion of a StaticInfoExtn struct.
-func (cfgdata StaticInfoCfg) gatherLatency(peers map[common.IFIDType]struct{},
+func (cfgdata *StaticInfoCfg) gatherLatency(peers map[common.IFIDType]struct{},
 	egifID common.IFIDType, inifID common.IFIDType) seg.LatencyInfo {
 
 	l := seg.LatencyInfo{
@@ -87,7 +87,7 @@ func (cfgdata StaticInfoCfg) gatherLatency(peers map[common.IFIDType]struct{},
 
 // gatherBW extracts bandwidth values from a StaticInfoCfg struct and
 // inserts them into the BandwidthInfo portion of a StaticInfoExtn struct.
-func (cfgdata StaticInfoCfg) gatherBW(peers map[common.IFIDType]struct{}, egifID common.IFIDType,
+func (cfgdata *StaticInfoCfg) gatherBW(peers map[common.IFIDType]struct{}, egifID common.IFIDType,
 	inifID common.IFIDType) seg.BandwidthInfo {
 
 	l := seg.BandwidthInfo{
@@ -133,7 +133,7 @@ func transformLinkType(linktype string) uint16 {
 
 // gatherLinktype extracts linktype values from a StaticInfoCfg struct and
 // inserts them into the LinktypeInfo portion of a StaticInfoExtn struct.
-func (cfgdata StaticInfoCfg) gatherLinkType(peers map[common.IFIDType]struct{},
+func (cfgdata *StaticInfoCfg) gatherLinkType(peers map[common.IFIDType]struct{},
 	egifID common.IFIDType) seg.LinktypeInfo {
 
 	l := seg.LinktypeInfo{
@@ -154,7 +154,7 @@ func (cfgdata StaticInfoCfg) gatherLinkType(peers map[common.IFIDType]struct{},
 
 // gatherHops extracts hop values from a StaticInfoCfg struct and
 // inserts them into the InternalHopsinfo portion of a StaticInfoExtn struct.
-func (cfgdata StaticInfoCfg) gatherHops(peers map[common.IFIDType]struct{},
+func (cfgdata *StaticInfoCfg) gatherHops(peers map[common.IFIDType]struct{},
 	egifID common.IFIDType, inifID common.IFIDType) seg.InternalHopsInfo {
 
 	l := seg.InternalHopsInfo{
@@ -175,7 +175,7 @@ func (cfgdata StaticInfoCfg) gatherHops(peers map[common.IFIDType]struct{},
 
 // gatherGeo extracts geo values from a StaticInfoCfg struct and
 // inserts them into the GeoInfo portion of a StaticInfoExtn struct.
-func (cfgdata StaticInfoCfg) gatherGeo() seg.GeoInfo {
+func (cfgdata *StaticInfoCfg) gatherGeo() seg.GeoInfo {
 	l := seg.GeoInfo{}
 	for intfid, loc := range cfgdata.Geo {
 		assigned := false
@@ -218,7 +218,7 @@ func ParseStaticInfoCfg(file string) (*StaticInfoCfg, error) {
 
 // generateStaticinfo creates a StaticinfoExtn struct and
 // populates it with data extracted from configdata.
-func (cfgdata StaticInfoCfg) generateStaticinfo(peers map[common.IFIDType]struct{},
+func (cfgdata *StaticInfoCfg) generateStaticinfo(peers map[common.IFIDType]struct{},
 	egifID common.IFIDType, inifID common.IFIDType) seg.StaticInfoExtn {
 
 	return seg.StaticInfoExtn{
