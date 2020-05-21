@@ -43,6 +43,7 @@ go_test(
         "//go/lib/ctrl/seg:go_default_library",
         "//go/lib/infra/modules/combinator:go_default_library",
         "//go/lib/pathpol:go_default_library",
+        "//go/lib/sciond:go_default_library",
         "//go/lib/xtest:go_default_library",
         "//go/lib/xtest/graph:go_default_library",
         "//go/sciond/internal/fetcher/mock_fetcher:go_default_library",
