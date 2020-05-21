@@ -167,7 +167,7 @@ func (r *PathReply) String() string {
 type PathReplyEntry struct {
 	Path     *FwdPathMeta
 	HostInfo hostinfo.Host
-	StaticInfo *PathMetadata
+	StaticInfo *PathMetadata `capnp:"pathStaticInfo"`
 }
 
 func (e *PathReplyEntry) Copy() *PathReplyEntry {

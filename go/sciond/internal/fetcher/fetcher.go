@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"time"
 
@@ -184,7 +183,6 @@ func (f *fetcher) translate(path *combinator.Path) (sciond.PathReplyEntry, error
 		HostInfo: hostinfo.FromUDPAddr(*nextHop),
 		StaticInfo: Condensemetadata(path.StaticInfo),
 	}
-	fmt.Println(entry.StaticInfo)
 	return entry, nil
 }
 
