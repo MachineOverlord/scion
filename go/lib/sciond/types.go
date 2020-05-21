@@ -167,6 +167,7 @@ func (r *PathReply) String() string {
 type PathReplyEntry struct {
 	Path     *FwdPathMeta
 	HostInfo hostinfo.Host
+	StaticInfo *PathMetadata
 }
 
 func (e *PathReplyEntry) Copy() *PathReplyEntry {
