@@ -52,14 +52,14 @@ func Condensemetadata(data *combinator.PathMetadata) *sciond.PathMetadata {
 	}
 
 	for ia, note := range data.Notes {
-		ret.Notes = append(ret.Notes, sciond.DenseNote{
+		ret.Notes = append(ret.Notes, &sciond.DenseNote{
 			Note:  note.Note,
 			RawIA: ia.IAInt(),
 		})
 	}
 
 	for ia, loc := range data.Geo {
-		newloc := sciond.DenseGeo{
+		newloc := &sciond.DenseGeo{
 			RouterLocations: []sciond.DenseGeoLoc{},
 			RawIA:           ia.IAInt(),
 		}
@@ -75,7 +75,7 @@ func Condensemetadata(data *combinator.PathMetadata) *sciond.PathMetadata {
 	}
 
 	for ia, link := range data.Links {
-		ret.LinkTypes = append(ret.LinkTypes, sciond.DenseASLinkType{
+		ret.LinkTypes = append(ret.LinkTypes, &sciond.DenseASLinkType{
 			InterLinkType: link.InterLinkType,
 			PeerLinkType:  link.PeerLinkType,
 			RawIA:         ia.IAInt(),

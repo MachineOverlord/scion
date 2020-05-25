@@ -12,9 +12,9 @@ type PathMetadata struct {
 	TotalLatency uint16            `capnp:"totalLatency"`
 	TotalHops    uint8             `capnp:"totalHops"`
 	MinOfMaxBWs  uint32            `capnp:"minimalBandwidth"`
-	LinkTypes    []DenseASLinkType `capnp:"linkTypes"`
-	Locations    []DenseGeo        `capnp:"asLocations"`
-	Notes        []DenseNote       `capnp:"notes"`
+	LinkTypes    []*DenseASLinkType `capnp:"linkTypes"`
+	Locations    []*DenseGeo        `capnp:"asLocations"`
+	Notes        []*DenseNote       `capnp:"notes"`
 }
 
 func (s *PathMetadata) ProtoId() proto.ProtoIdType {
@@ -22,10 +22,23 @@ func (s *PathMetadata) ProtoId() proto.ProtoIdType {
 }
 
 func (s *PathMetadata) String() string {
-	return fmt.Sprintf("TotalLatency: %v\nTotalHops: %v\n"+
-		"BandwidthBottleneck: %v\nLinkTypes: %v\nASLocations: %v\nNotes: %v\n",
+	return fmt.Sprintf("\nTotalLatency: %v ms\nTotalHops: %v\n"+
+		"BandwidthBottleneck: %v Kb/s\nLinkTypes: %v\nASLocations: %v\nNotes: %v\n",
 		s.TotalLatency, s.TotalHops, s.MinOfMaxBWs, s.LinkTypes, s.Locations,
 		s.Notes)
+}
+
+func reverseTransformLinkType(linktype uint16) string{
+	switch linktype {
+	case 3:
+		return "opennet"
+	case 2:
+		return "multihop"
+	case 1:
+		return "direct"
+	default:
+		return "unset"
+	}
 }
 
 type DenseASLinkType struct {
@@ -39,8 +52,9 @@ func (s *DenseASLinkType) ProtoId() proto.ProtoIdType {
 }
 
 func (s *DenseASLinkType) String() string {
-	return fmt.Sprintf("InterLinkType: %d\nPeerLinkType: %d\nISD: %d\nAS: %d\n",
-		s.InterLinkType, s.PeerLinkType, s.RawIA.IA().I, s.RawIA.IA().A)
+	return fmt.Sprintf("InterLinkType: %s\nPeerLinkType: %s\nISD: %d\nAS: %d\n",
+		reverseTransformLinkType(s.InterLinkType), reverseTransformLinkType(s.PeerLinkType),
+		s.RawIA.IA().I, s.RawIA.IA().A)
 }
 
 type DenseGeo struct {
