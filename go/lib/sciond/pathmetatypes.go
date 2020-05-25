@@ -96,6 +96,6 @@ func (s *DenseNote) ProtoId() proto.ProtoIdType {
 }
 
 func (s *DenseNote) String() string {
-	return fmt.Sprintf("Text: %s\nISD: %d\nAS: %d\nRawIA: %v\n",
+	return fmt.Sprintf("\nText: %s\nISD: %d\nAS: %d\nRawIA: %v\n",
 		s.Note, s.RawIA.IA().I, s.RawIA.IA().A, s.RawIA.IA())
 }
