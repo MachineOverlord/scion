@@ -180,7 +180,7 @@ func (cfgdata *StaticInfoCfg) gatherGeo() seg.GeoInfo {
 				GPSData: seg.Coordinates{
 					Longitude: loc.Longitude,
 					Latitude:  loc.Latitude,
-					Address:   loc.Address,
+					Address:   loc.Address[:500],
 				},
 				IfIDs: []common.IFIDType{intfid},
 			})
@@ -214,7 +214,7 @@ func (cfgdata *StaticInfoCfg) generateStaticinfo(peers map[common.IFIDType]struc
 		Bandwidth: cfgdata.gatherBW(peers, egifID, inifID),
 		Linktype:  cfgdata.gatherLinkType(peers, egifID),
 		Geo:       cfgdata.gatherGeo(),
-		Note:      cfgdata.Note,
+		Note:      cfgdata.Note[:2000],
 		Hops:      cfgdata.gatherHops(peers, egifID, inifID),
 	}
 }
