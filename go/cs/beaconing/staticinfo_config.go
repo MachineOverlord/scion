@@ -113,11 +113,11 @@ func (cfgdata *StaticInfoCfg) gatherBW(peers map[common.IFIDType]struct{}, egifI
 func transformLinkType(linktype string) uint16 {
 	switch linktype {
 	case "opennet":
-		return 0
+		return 3
 	case "multihop":
-		return 1
-	case "direct":
 		return 2
+	case "direct":
+		return 1
 	default:
 		return 0
 	}
