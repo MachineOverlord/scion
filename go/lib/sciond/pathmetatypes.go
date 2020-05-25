@@ -52,13 +52,13 @@ func (s *DenseASLinkType) ProtoId() proto.ProtoIdType {
 }
 
 func (s *DenseASLinkType) String() string {
-	return fmt.Sprintf("InterLinkType: %s\nPeerLinkType: %s\nISD: %d\nAS: %d\n",
+	return fmt.Sprintf("\nInterLinkType: %s\nPeerLinkType: %s\nISD: %d\nAS: %d\nRawIA: %v\n",
 		reverseTransformLinkType(s.InterLinkType), reverseTransformLinkType(s.PeerLinkType),
-		s.RawIA.IA().I, s.RawIA.IA().A)
+		s.RawIA.IA().I, s.RawIA.IA().A, s.RawIA.IA())
 }
 
 type DenseGeo struct {
-	RouterLocations []DenseGeoLoc `capnp:"routerLocations"`
+	RouterLocations []*DenseGeoLoc `capnp:"routerLocations"`
 	RawIA           addr.IAInt    `capnp:"isdas"`
 }
 
@@ -67,8 +67,8 @@ func (s *DenseGeo) ProtoId() proto.ProtoIdType {
 }
 
 func (s *DenseGeo) String() string {
-	return fmt.Sprintf("RouterLocations: %v\nISD: %d\nAS: %d\n",
-		s.RouterLocations, s.RawIA.IA().I, s.RawIA.IA().A)
+	return fmt.Sprintf("\nRouterLocations: %v\nISD: %d\nAS: %d\nRawIA: %v\n",
+		s.RouterLocations, s.RawIA.IA().I, s.RawIA.IA().A, s.RawIA.IA())
 }
 
 type DenseGeoLoc struct {
@@ -82,7 +82,7 @@ func (s *DenseGeoLoc) ProtoId() proto.ProtoIdType {
 }
 
 func (s *DenseGeoLoc) String() string {
-	return fmt.Sprintf("Latitude: %f\nLongitude: %f\nAddress: %s\n",
+	return fmt.Sprintf("Latitude: %f, Longitude: %f, Address: %s",
 		s.Latitude, s.Longitude, s.Address)
 }
 
@@ -96,6 +96,6 @@ func (s *DenseNote) ProtoId() proto.ProtoIdType {
 }
 
 func (s *DenseNote) String() string {
-	return fmt.Sprintf("Text: %s\nISD: %d\nAS: %d\n",
-		s.Note, s.RawIA.IA().I, s.RawIA.IA().A)
+	return fmt.Sprintf("Text: %s\nISD: %d\nAS: %d\nRawIA: %v\n",
+		s.Note, s.RawIA.IA().I, s.RawIA.IA().A, s.RawIA.IA())
 }

@@ -60,12 +60,12 @@ func Condensemetadata(data *combinator.PathMetadata) *sciond.PathMetadata {
 
 	for ia, loc := range data.Geo {
 		newloc := &sciond.DenseGeo{
-			RouterLocations: []sciond.DenseGeoLoc{},
+			RouterLocations: []*sciond.DenseGeoLoc{},
 			RawIA:           ia.IAInt(),
 		}
 		for _, gpsdata := range loc.Locations {
 			newloc.RouterLocations = append(newloc.RouterLocations,
-				sciond.DenseGeoLoc{
+				&sciond.DenseGeoLoc{
 					Latitude:  gpsdata.Latitude,
 					Longitude: gpsdata.Longitude,
 					Address:   gpsdata.Address,
