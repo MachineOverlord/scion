@@ -190,9 +190,8 @@ func (cfgdata *StaticInfoCfg) gatherGeo() seg.GeoInfo {
 }
 
 func truncateString(s string, num int) string{
-	newstring := s
-	if(len(newstring)>num){
-		return newstring[:num]
+	if(len(s)>num){
+		return s[:num]
 	}
 	return s
 }
