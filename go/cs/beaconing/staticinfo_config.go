@@ -221,7 +221,7 @@ func (cfgdata *StaticInfoCfg) generateStaticinfo(peers map[common.IFIDType]struc
 		Bandwidth: cfgdata.gatherBW(peers, egifID, inifID),
 		Linktype:  cfgdata.gatherLinkType(peers, egifID),
 		Geo:       cfgdata.gatherGeo(),
-		Note:      truncateString(cfgdata.Note, 10),
+		Note:      truncateString(cfgdata.Note, 2000),
 		Hops:      cfgdata.gatherHops(peers, egifID, inifID),
 	}
 }
