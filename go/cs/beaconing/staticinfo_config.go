@@ -180,13 +180,21 @@ func (cfgdata *StaticInfoCfg) gatherGeo() seg.GeoInfo {
 				GPSData: seg.Coordinates{
 					Longitude: loc.Longitude,
 					Latitude:  loc.Latitude,
-					Address:   loc.Address[:500],
+					Address:   truncateString(loc.Address,500),
 				},
 				IfIDs: []common.IFIDType{intfid},
 			})
 		}
 	}
 	return l
+}
+
+func truncateString(s string, num int) string{
+	newstring := s
+	if(len(newstring)>num){
+		return newstring[:num]
+	}
+	return s
 }
 
 // ParseStaticInfoCfg parses data from a config file into a StaticInfoCfg struct.
@@ -214,7 +222,7 @@ func (cfgdata *StaticInfoCfg) generateStaticinfo(peers map[common.IFIDType]struc
 		Bandwidth: cfgdata.gatherBW(peers, egifID, inifID),
 		Linktype:  cfgdata.gatherLinkType(peers, egifID),
 		Geo:       cfgdata.gatherGeo(),
-		Note:      cfgdata.Note[:2000],
+		Note:      truncateString(cfgdata.Note, 10),
 		Hops:      cfgdata.gatherHops(peers, egifID, inifID),
 	}
 }
